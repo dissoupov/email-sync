@@ -1,0 +1,14 @@
+/.coverage
+/*.out
+
+bin/
+.gopath
+.idea/
+.tmp/
+.docker/
+.DS_Store
+
+debug
+debug.test
+
+internal/version/current.go
