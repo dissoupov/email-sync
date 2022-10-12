@@ -1,0 +1,30 @@
+clients:
+  - provider_id: microsoft
+    client_id: env://ABLE_MS_CLIENT_ID
+    client_secret: env://ABLE_MS_CLIENT_SECRET
+    scopes:
+      #- openid
+      #- User.Read
+      #- email
+      #- profile
+      # The permission scope required for IMAP access
+      - https://outlook.office365.com/.default
+      #- https://ps.outlook.com/IMAP.AccessAsApp
+      #- https://outlook.office.com/IMAP.AccessAsUser.All
+      #- https://ps.outlook.com/Mail.ReadWrite
+      #- https://ps.outlook.com/Mail.Send
+    response_type: code
+    auth_url: https://login.microsoftonline.com/68da4686-08eb-4e27-a830-ed36dd5f7770/oauth2/v2.0/authorize
+    token_url: https://login.microsoftonline.com/68da4686-08eb-4e27-a830-ed36dd5f7770/oauth2/v2.0/token
+    userinfo_url: https://graph.microsoft.com/oidc/userinfo
+    wellknown: https://login.microsoftonline.com/68da4686-08eb-4e27-a830-ed36dd5f7770/v2.0/.well-known/openid-configuration
+  # - provider_id: google
+  #   client_id: env://ABLE_GOOGLE_CLIENT_ID
+  #   client_secret: env://ABLE_GOOGLE_CLIENT_SECRET
+  #   scopes:
+  #     - openid
+  #     - https://www.googleapis.com/auth/userinfo.email
+  #     - https://www.googleapis.com/auth/userinfo.profile
+  #   response_type: code
+  #   auth_url: https://accounts.google.com/o/oauth2/v2/auth
+  #   token_url: https://oauth2.googleapis.com/token
