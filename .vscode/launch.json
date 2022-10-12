@@ -13,8 +13,7 @@
             "env": {},
             "args": [
                 "-D",
-                "auth", "login", "microsoft",
-                "--config", "${workspaceRoot}/etc/oauth2_clients.yaml"
+                "email","get","denis@ekspand.onmicrosoft.com","--id", "\u003cCAJNOD81MpvpzrUFfXjgQr09QG+3kaPm6qXyr+DH7+ZEK5oc5=g@mail.gmail.com\u003e"
             ],
             "showLog": false
         }

@@ -3,8 +3,11 @@ package cli
 import (
 	"io"
 	"os"
+	"time"
 
+	"github.com/ableorg/email-sync/pkg/emailprov"
 	"github.com/alecthomas/kong"
+	"github.com/effective-security/porto/pkg/retriable"
 	"github.com/effective-security/porto/xhttp/marshal"
 	"github.com/effective-security/xlog"
 	"github.com/effective-security/xpki/x/ctl"
@@ -21,6 +24,10 @@ type Cli struct {
 	Debug    bool            `short:"D" help:"Enable debug mode"`
 	LogLevel string          `short:"l" help:"Set the logging level (debug|info|warn|error)" default:"info"`
 	Version  ctl.VersionFlag `name:"version" help:"Print version information and quit" hidden:""`
+
+	Server  string        `help:"Email server address" default:"outlook.office365.com:993"`
+	Storage string        `help:"Folder location for the cache" default:"~/.ableai/email"`
+	Timeout time.Duration `help:"Timeout for email operations" default:"30s"`
 
 	// Stdin is the source to read from, typically set to os.Stdin
 	stdin io.Reader
@@ -123,4 +130,27 @@ func (c *Cli) WriteObject(format string, value interface{}) error {
 		return c.WriteYaml(value)
 	}
 	return c.WriteJSON(value)
+}
+
+// Connect to email
+func (c *Cli) Connect(email string) (*emailprov.Provider, error) {
+	t, err := retriable.LoadAuthToken(retriable.ExpandStorageFolder(c.Storage))
+	if err != nil {
+		return nil, errors.WithMessagef(err, "unable to load auth token, use auth command")
+	}
+
+	accessToken, tokenType, _, err := retriable.ParseAuthToken(t)
+	if err != nil {
+		return nil, errors.WithMessagef(err, "failed to parse auth token")
+	}
+	if tokenType != "Bearer" {
+		return nil, errors.Errorf("unsupported token type: %s", tokenType)
+	}
+
+	p, err := emailprov.New(c.Server, email, accessToken, emailprov.WithTimeout(c.Timeout))
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	return p, nil
 }

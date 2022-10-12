@@ -13,7 +13,8 @@ import (
 type app struct {
 	cli.Cli
 
-	Auth cli.AuthCmd `cmd:"" help:"Authentication commands"`
+	Auth  cli.AuthCmd  `cmd:"" help:"Authentication commands"`
+	Email cli.EmailCmd `cmd:"" help:"Email commands"`
 }
 
 func main() {

@@ -19,8 +19,10 @@ import (
 	"github.com/effective-security/porto/xhttp/marshal"
 	"github.com/effective-security/xlog"
 	"github.com/effective-security/xpki/certutil"
+	"github.com/effective-security/xpki/jwt"
 	"github.com/effective-security/xpki/jwt/oauth2client"
 	"github.com/pkg/errors"
+	"golang.org/x/net/context"
 	"golang.org/x/oauth2"
 )
 
@@ -30,11 +32,12 @@ const (
 
 // AuthCmd is the parent for auth command
 type AuthCmd struct {
-	Login LoginCmd `cmd:"" help:"login to the server"`
+	Token TokenCmd    `cmd:"" help:"get token from identity provider"`
+	Info  UserinfoCmd `cmd:"" help:"get user info from the token"`
 }
 
-// LoginCmd starts login to the server
-type LoginCmd struct {
+// TokenCmd starts login to the server
+type TokenCmd struct {
 	Provider string `kong:"arg" required:"" help:"provider type: microsoft|google"`
 	Config   string `required:"" help:"OAuth2 client configuration"`
 
@@ -44,7 +47,7 @@ type LoginCmd struct {
 }
 
 // Run the command
-func (a *LoginCmd) Run(ctx *Cli) error {
+func (a *TokenCmd) Run(ctx *Cli) error {
 	// client, err := ctx.HTTPClient()
 	// if err != nil {
 	// 	return errors.WithStack(err)
@@ -52,7 +55,7 @@ func (a *LoginCmd) Run(ctx *Cli) error {
 
 	client := retriable.New()
 	client.EnvAuthTokenName = EnvAuthTokenName
-	client.StorageFolder = "~/.ableai/email"
+	client.StorageFolder = ctx.Storage
 
 	oa2, err := oauth2client.LoadProvider(a.Config)
 	if err != nil {
@@ -76,8 +79,10 @@ func (a *LoginCmd) Run(ctx *Cli) error {
 	}
 
 	rt := "token"
+	tt := "access_token"
 	if a.IDToken {
 		rt = "id_token"
+		tt = rt
 	}
 
 	startURL := conf.AuthCodeURL(
@@ -119,14 +124,14 @@ func (a *LoginCmd) Run(ctx *Cli) error {
 				return
 			}
 
-			token = r.Form.Get("access_token")
+			token = r.Form.Get(tt)
 			tokenType = r.Form.Get("token_type")
 			expiresIn = r.Form.Get("expires_in")
 			errCode = r.Form.Get("error")
 			errDescr = r.Form.Get("error_description")
 		} else {
 			vals := r.URL.Query()
-			token = urlutil.GetValue(vals, "access_token")
+			token = urlutil.GetValue(vals, tt)
 			tokenType = urlutil.GetValue(vals, "token_type")
 			expiresIn = urlutil.GetValue(vals, "expires_in")
 			errCode = urlutil.GetValue(vals, "error")
@@ -200,4 +205,52 @@ func (a *LoginCmd) Run(ctx *Cli) error {
 	}
 
 	return nil
+}
+
+// UserinfoCmd prints caller id from the server
+type UserinfoCmd struct {
+	Provider string `kong:"arg" required:"" help:"provider type: microsoft|google"`
+	Config   string `required:"" help:"OAuth2 client configuration"`
+}
+
+// Run the command
+func (a *UserinfoCmd) Run(ctx *Cli) error {
+	userInfo := userInfoFn[a.Provider]
+	if userInfo == nil {
+		return errors.Errorf("unsupported provider: %s", a.Provider)
+	}
+
+	oa2, err := oauth2client.LoadProvider(a.Config)
+	if err != nil {
+		return errors.WithMessagef(err, "unable to OAuth config")
+	}
+	oc := oa2.Client(a.Provider)
+	if oc == nil {
+		return errors.WithMessagef(err, "unsupported provider: %s", a.Provider)
+	}
+	o := oc.Config()
+
+	t, err := retriable.LoadAuthToken(retriable.ExpandStorageFolder(ctx.Storage))
+	if err != nil {
+		return errors.WithMessagef(err, "unable to load auth token, use auth command")
+	}
+
+	accessToken, _, _, err := retriable.ParseAuthToken(t)
+	if err != nil {
+		return errors.WithMessagef(err, "failed to parse auth token")
+	}
+
+	res, err := userInfo(ctx.Context(), o, accessToken)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	fmt.Fprintln(ctx.Writer(), res)
+
+	return nil
+}
+
+var userInfoFn = map[string]func(ctx context.Context, cl *oauth2client.ClientConfig, accessToken string) (jwt.MapClaims, error){
+	"microsoft": getMicrosoftUser,
+	// TODO: add new provider here
 }

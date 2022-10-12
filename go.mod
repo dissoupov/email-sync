@@ -4,9 +4,10 @@ go 1.19
 
 require (
 	github.com/alecthomas/kong v0.6.1
-	github.com/effective-security/porto v0.0.0-20220820041343-3f25c6e94df5
+	github.com/effective-security/porto v0.0.0-20220827101040-be51bbd57440
 	github.com/effective-security/xlog v0.0.0-20220818044154-4d280a49975d
 	github.com/effective-security/xpki v0.2.1-0.20220819111319-12b55bb0be52
+	github.com/emersion/go-imap v1.2.1
 	github.com/go-phorce/cov-report v1.1.1-0.20200622030546-3fb510c4b1ba
 	github.com/pkg/errors v0.9.1
 	github.com/princjef/gomarkdoc v0.4.1
@@ -23,6 +24,7 @@ require (
 	github.com/VividCortex/ewma v1.2.0 // indirect
 	github.com/cheggaaa/pb/v3 v3.0.8 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21 // indirect
 	github.com/emirpasic/gods v1.12.0 // indirect
 	github.com/fatih/color v1.11.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
@@ -57,6 +59,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/spf13/viper v1.7.1 // indirect
+	github.com/sqs/go-xoauth2 v0.0.0-20120917012134-0911dad68e56 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
 	github.com/ugorji/go/codec v1.2.6 // indirect
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2 // indirect
